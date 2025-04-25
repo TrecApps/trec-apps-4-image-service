@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 
-@Document("Falsehood")
+@Document("ImageRecord")
 @Data
 public class ImageRecord {
 

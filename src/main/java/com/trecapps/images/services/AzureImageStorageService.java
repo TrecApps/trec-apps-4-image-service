@@ -28,6 +28,11 @@ public class AzureImageStorageService implements IImageStorageService {
     BlobContainerAsyncClient publicContainerClient;
     BlobContainerAsyncClient hiddenContainerClient;
 
+    void prepContainers(){
+        this.publicContainerClient.createIfNotExists().subscribe();
+        this.hiddenContainerClient.createIfNotExists().subscribe();
+    }
+
     AzureImageStorageService(String name,
                    String key,
                    String endpoint,
@@ -41,6 +46,7 @@ public class AzureImageStorageService implements IImageStorageService {
         this.objectMapper = objectMapperBuilder.createXmlMapper(false).build();
         this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        prepContainers();
     }
 
     AzureImageStorageService(
@@ -60,6 +66,7 @@ public class AzureImageStorageService implements IImageStorageService {
         this.objectMapper = objectMapperBuilder.createXmlMapper(false).build();
         this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        prepContainers();
     }
 
 

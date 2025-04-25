@@ -7,7 +7,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 
 @SpringBootApplication
 @ComponentScan({
-        //"com.trecapps.auth.common.*",
+        "com.trecapps.auth.common.*",
         "com.trecapps.auth.webflux.*",
         "com.trecapps.images.*"})
 @EnableWebFlux
