@@ -24,14 +24,23 @@ jobs:
           java-version: 'java21'
           distribution: 'microsoft'
 
-      - name: Build with Maven
-        run: mvn clean install
+      - name: Set Up Gradle Properties
+        env:
+          GRADLE_PROPS: ${{secrets.GRADLE_PROPS}}
+        shell: bash
+        run : |
+          mkdir -p ~/.gradle/
+          echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
+          echo "${GRADLE_PROPS}" > ~/.gradle/gradle.properties  
+
+      - name: Build with Gradle
+        run: gradle build
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.3
         with:
           name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
+          path: '${{ github.workspace }}/build/libs/*.jar'
 
   deploy:
     runs-on: ubuntu-latest
