@@ -45,7 +45,7 @@ public interface IImageStorageService {
     }
 
     default byte[] applyCrop(byte[] image, String crop, ImageRecord record) throws IOException {
-        if(!canUseCrop(crop, record)) return image;
+        if(!canUseCrop(crop, record) || crop == null) return image;
 
         String[] cropParam = crop.split(",");
         int[] intParams = new int[4];

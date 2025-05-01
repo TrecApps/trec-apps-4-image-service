@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,7 @@ public class ImageApiController {
     Mono<ResponseEntity<ResponseObj>> postImage(
             Authentication authentication,
             @RequestHeader("Content-Type") String type,
-            @RequestBody byte[] data,
+            @RequestBody String data,
             @RequestParam(required = false) String crop,
             @RequestParam(required = false) String mode,
             @RequestParam(required = false) String album,
@@ -37,7 +38,7 @@ public class ImageApiController {
         return imageWriteService.postImage(
                 trecAuthentication.getUser(),
                 trecAuthentication.getBrand(),
-                data,
+                Base64.getDecoder().decode(data),
                 type,
                 crop,
                 mode,

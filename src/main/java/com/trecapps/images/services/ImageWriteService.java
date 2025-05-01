@@ -277,8 +277,10 @@ public class ImageWriteService {
                     String useCrop = crop;
                     if(useCrop == null)
                         useCrop = imageRecord.getDefaultCrop();
+                    else if(useCrop.equals("whole"))
+                        useCrop = null;
 
-                    return this.imageStorageService.retrieveImageBase64(imageRecord, crop);
+                    return this.imageStorageService.retrieveImageBase64(imageRecord, useCrop);
                 })
                 .map((String base64) -> ResponseObj.getInstance(HttpStatus.OK, base64))
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> Mono.just(ex.toResponseObj()));
