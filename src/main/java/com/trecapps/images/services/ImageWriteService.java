@@ -124,6 +124,53 @@ public class ImageWriteService {
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> Mono.just(ex.toResponseObj()));
     }
 
+    public Mono<ResponseObj> patchData(
+            @NotNull TcUser user,
+            @Nullable TcBrands brands,
+            @NotNull String imageId,
+            ImagePatch patch
+    ){
+        return imageRepo.findById(imageId)
+                .doOnNext((ImageRecord imageRecord) -> {
+                    if(imageRecord == null)
+                        throw new ObjectResponseException("Image not found!", HttpStatus.NOT_FOUND);
+
+                    String profile = HelperMethods.getRequesterProfile(user, brands);
+                    if(!profile.equals(imageRecord.getOwner()))
+                        throw new ObjectResponseException("Image does not belong to you!", HttpStatus.FORBIDDEN);
+                })
+                .flatMap((ImageRecord record) -> {
+                    switch(patch.getField()){
+                        case "crop":
+                            if(patch.getValue() == null)
+                                record.setDefaultCrop(null);
+                            else
+                            {
+                                String newCrop = patch.getValue().trim();
+
+                                if(!imageStorageService.canUseCrop(patch.getValue(), record))
+                                    throw new ObjectResponseException(
+                                            "'crop' field requires a value of the format '[x],[y],[width],[height]'" +
+                                                    " for which the resulting rectangle fits on the image!",
+                                            HttpStatus.BAD_REQUEST);
+                                record.setDefaultCrop(newCrop);
+                            }
+                            break;
+                        case "album":
+                            record.setAlbum(new HashSet<>(List.of(patch.getValue().trim())));
+                            break;
+                        case "owner":
+                            throw new ObjectResponseException("Field 'owner' not supported at this time! Use 'crop' or 'album'!", HttpStatus.NOT_IMPLEMENTED);
+                        default:
+                            throw new ObjectResponseException("Unrecognized field update! Needs to be 'crop' or 'album'!", HttpStatus.BAD_REQUEST);
+                    }
+
+                    return this.imageRepo.save(record)
+                            .thenReturn(ResponseObj.getInstance(HttpStatus.OK, "Success"));
+                })
+                .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> Mono.just(ex.toResponseObj()));
+    }
+
 
     public Mono<ResponseObj> patchReaders(
             @NotNull TcUser user,

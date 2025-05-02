@@ -2,6 +2,7 @@ package com.trecapps.images.controllers;
 
 import com.azure.core.annotation.Get;
 import com.trecapps.auth.common.models.TrecAuthentication;
+import com.trecapps.images.models.ImagePatch;
 import com.trecapps.images.models.ImageRecord;
 import com.trecapps.images.models.ReaderAction;
 import com.trecapps.images.models.ResponseObj;
@@ -48,6 +49,21 @@ public class ImageApiController {
                 ).map(ResponseObj::toEntity);
 
 
+    }
+
+    @PatchMapping
+    Mono<ResponseEntity<ResponseObj>> patchData(
+            Authentication authentication,
+            @RequestBody ImagePatch patch,
+            @RequestParam String id
+    ){
+        TrecAuthentication trecAuthentication = (TrecAuthentication) authentication;
+        return imageWriteService.patchData(
+                trecAuthentication.getUser(),
+                trecAuthentication.getBrand(),
+                id,
+                patch
+        ).map(ResponseObj::toEntity);
     }
 
     @PatchMapping("/readers")
