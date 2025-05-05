@@ -3,6 +3,7 @@ package com.trecapps.images.models;
 import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 @Data
 public class ImageProfile {
 
-    @Id
+    @MongoId
     String profileId;
 
     List<ImageProfileEntry> entries = new ArrayList<>();

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Id;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoId;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,21 +47,19 @@ public class ImageRecord {
 
     @JsonIgnore
     public boolean isPublicEligible(){
-        if(analysis == null || !analysis.isObject()){
+        if(analysis == null){
             // Assume it is not safe for publication
             return false;
         }
 
-        JsonNode adultNode = analysis.findValue(BOOL_FIELD_ADULT);
-        JsonNode goryNode = analysis.findValue(BOOL_FIELD_GORY);
+
 
         // Make sure AI has verified that image is not adult or gory
-        return adultNode != null && adultNode.isBoolean() && !adultNode.asBoolean() &&
-                goryNode != null && goryNode.isBoolean() && !goryNode.asBoolean();
+        return !analysis.isAdultContent() && !analysis.isGoryContent();
     }
 
 
-    @Id
+    @MongoId
     String id;
     String owner; // Either a user ("user-[user_id]") or a brand account ("brand-[brand_id]")
     Set<String> album = new TreeSet<>(); // the Albums the image belongs to
@@ -75,7 +74,7 @@ public class ImageRecord {
 
     Set<String> readers = new HashSet<>(); // Who is allowed to read it (useful when restricting access)
 
-    JsonNode analysis;  // Extended properties that will be added via AI
+    Analysis analysis;  // Extended properties that will be added via AI
 
     boolean allowPublic = false; // ignored unless image is marked as adult. then allows bypass access
 

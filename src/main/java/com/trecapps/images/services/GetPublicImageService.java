@@ -5,10 +5,16 @@ import com.trecapps.images.repos.ImageRepo;
 import com.trecapps.images.repos.ProfileRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Service
 @ConditionalOnProperty(prefix = "trecapps.image", value = "public-get", havingValue = "true")
@@ -43,9 +49,12 @@ public class GetPublicImageService {
 
                     return this.imageStorageService.retrieveImage(record, useCrop)
                             .map((byte[] bytes) -> {
-                                ResponseEntity<byte[]> response = ResponseEntity.ok(bytes);
-                                response.getHeaders().add("Content-Type", record.getType());
-                                return response;
+                                MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+                                String type = record.getType();
+                                if(!type.startsWith("image/"))
+                                    type = "image/" + type;
+                                headers.add("Content-Type", type);
+                                return new ResponseEntity<byte[]>(bytes, headers, HttpStatusCode.valueOf(200));
                             });
                 });
     }
@@ -55,6 +64,14 @@ public class GetPublicImageService {
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> {
                     return Mono.just(new ResponseEntity<>(ex.getStatus()));
                 });
+    }
+
+    public Mono<ResponseEntity<ResponseObj>> setProfile(String id, List<ImageProfileEntry> entries){
+        ImageProfile iProfile = new ImageProfile();
+        iProfile.setProfileId(id);
+        iProfile.setEntries(entries);
+        return profileRepo.save(iProfile).thenReturn(ResponseObj.getInstance("Success", id))
+                .map(ResponseObj::toEntity);
     }
 
     public Mono<ResponseEntity<byte[]>> getImageByProfileId(String profileId, final String app) {
