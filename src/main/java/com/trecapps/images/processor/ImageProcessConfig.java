@@ -83,6 +83,7 @@ public class ImageProcessConfig {
                         return Mono.just(record);
                     })
                     .flatMap((ImageRecord record) -> imageRepo.save(record))
+                    .doOnNext((ImageRecord record) -> log.info("Updated Record {} for user {}. Current Status is {}", record.getId(), record.getOwner(), record.getState()))
                     .onErrorResume(ImageRecordException.class, (ImageRecordException ex) -> {
                         ImageRecord record = ex.getImageRecord();
                         log.error("Error processing image {}:", record.getId(), ex);

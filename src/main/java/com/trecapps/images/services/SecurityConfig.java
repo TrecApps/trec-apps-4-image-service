@@ -41,8 +41,8 @@ public class SecurityConfig {
                 .logout(ServerHttpSecurity.LogoutSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(restrictedEndpoints).authenticated()
-                        .pathMatchers(HttpMethod.POST, verifiedEndpoints).hasAuthority("TREC_VERIFIED")
-                        .pathMatchers(HttpMethod.POST, verifiedEndpoints).hasAuthority("MFA_PROVIDED")
+                        .pathMatchers(verifiedEndpoints).hasAuthority("TREC_VERIFIED")
+                        .pathMatchers(verifiedEndpoints).hasAuthority("MFA_PROVIDED")
                         .anyExchange().permitAll())
                 .securityContextRepository(trecSecurityContext)
 

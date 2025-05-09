@@ -37,16 +37,22 @@ repositories {
     }
 }
 
+configurations {
+    implementation.exclude module: "spring-boot-starter-reactor-netty"
+}
+
 dependencies {
     implementation 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     //Enable Trec-Auth
-    implementation 'com.trecapps.auth:TrecAuth:0.9.21-alpha'
+    implementation 'com.trecapps.auth:TrecAuth:0.9.23-alpha'
 
     // Spring Boot features
     implementation "org.springframework.boot:spring-boot-starter-quartz:$springbootVersion"
     implementation("org.springframework.boot:spring-boot-starter-webflux:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-undertow:$springbootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-undertow:$springbootVersion")
     implementation "org.springframework.boot:spring-boot-starter-actuator:$springbootVersion"
     implementation "org.springframework.boot:spring-boot-starter-validation:$springbootVersion"
     implementation 'com.zaxxer:HikariCP:6.2.1' // Used to resolve java.lang.AbstractMethodError: Receiver class

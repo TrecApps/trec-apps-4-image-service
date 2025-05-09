@@ -18,7 +18,13 @@ import java.util.regex.Pattern;
 public class ImageRecord {
 
     static final Pattern CROP_PATTERN = Pattern.compile("[0-9]+,[0-9]+,[0-9]+,[0-9]+");
-    static final List<String> allowedTypes = List.of();
+    static final List<String> allowedTypes = List.of(
+            "gif",
+            "jpeg",
+            "png",
+            "svg",
+            "webp"
+    );
 
     public static final String BOOL_FIELD_ADULT = "isAdultContent";
     public static final String BOOL_FIELD_GORY = "isGoryContent";
@@ -97,9 +103,11 @@ public class ImageRecord {
 
     public void setType(String type){
         String t = type.toLowerCase(Locale.ROOT).trim();
+        if(t.startsWith("image/"))
+            t = t.substring(6);
         if(!allowedTypes.contains(t))
             throw new ObjectResponseException(
                     String.format("Image of type %s is not supported!", t), HttpStatus.BAD_REQUEST);
-        this.type = type;
+        this.type = t;
     }
 }
