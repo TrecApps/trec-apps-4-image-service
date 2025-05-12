@@ -378,9 +378,13 @@ public class ImageWriteService {
                 })
                 .flatMap((ImageRecord imageRecord) -> {
                     return this.imageRepo.save(imageRecord)
-                            .thenReturn(
-                                    ResponseObj.getInstance(HttpStatus.OK,
-                                            String.format("Deletion Request submitted. You image will be deleted in %d days!", this.softDeleteDays)));
+                            .map((ImageRecord ir) -> {
+                                ResponseObj obj = ResponseObj.getInstance(HttpStatus.OK,
+                                        String.format("Deletion Request submitted. Your image will be deleted in %d days!", this.softDeleteDays));
+                                obj.setId(ir.getDeleteOn().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+                                return obj;
+                            });
+
                 })
                 .onErrorResume((Throwable thrown) -> {
                     return Mono.just(ResponseObj.getInstance(HttpStatus.INTERNAL_SERVER_ERROR, "Error Submitting Delete Request!"));
@@ -409,7 +413,7 @@ public class ImageWriteService {
                     return this.imageRepo.save(imageRecord)
                             .thenReturn(
                                     ResponseObj.getInstance(HttpStatus.OK,
-                                            String.format("Deletion Request submitted. You image will be deleted in %d days!", this.softDeleteDays)));
+                                            "Cancellation Request submitted. Your image will not be deleted!"));
                 })
                 .onErrorResume((Throwable thrown) -> {
                     return Mono.just(ResponseObj.getInstance(HttpStatus.INTERNAL_SERVER_ERROR, "Error Submitting Delete Request!"));
