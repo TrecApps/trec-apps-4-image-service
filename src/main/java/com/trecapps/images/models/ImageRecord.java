@@ -84,6 +84,8 @@ public class ImageRecord {
 
     boolean allowPublic = false; // ignored unless image is marked as adult. then allows bypass access
 
+    OffsetDateTime deleteOn;
+
 
 
 

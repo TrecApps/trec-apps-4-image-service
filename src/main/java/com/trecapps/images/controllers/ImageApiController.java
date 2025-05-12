@@ -1,6 +1,7 @@
 package com.trecapps.images.controllers;
 
 import com.azure.core.annotation.Get;
+import com.nimbusds.oauth2.sdk.Response;
 import com.trecapps.auth.common.models.TrecAuthentication;
 import com.trecapps.images.models.ImagePatch;
 import com.trecapps.images.models.ImageRecord;
@@ -126,6 +127,32 @@ public class ImageApiController {
                 trecAuthentication.getUser(),
                 trecAuthentication.getBrand(),
                 id, crop, allowAdult
+        ).map(ResponseObj::toEntity);
+    }
+
+    @DeleteMapping("/{id}")
+    Mono<ResponseEntity<ResponseObj>> deleteImage(
+            Authentication authentication,
+            @PathVariable String id
+    ) {
+        TrecAuthentication trecAuthentication = (TrecAuthentication) authentication;
+        return imageWriteService.startDelete(
+                trecAuthentication.getUser(),
+                trecAuthentication.getBrand(),
+                id
+        ).map(ResponseObj::toEntity);
+    }
+
+    @DeleteMapping("/cancel/{id}")
+    Mono<ResponseEntity<ResponseObj>> cancelDeletion(
+            Authentication authentication,
+            @PathVariable String id
+    ){
+        TrecAuthentication trecAuthentication = (TrecAuthentication) authentication;
+        return imageWriteService.cancelDelete(
+                trecAuthentication.getUser(),
+                trecAuthentication.getBrand(),
+                id
         ).map(ResponseObj::toEntity);
     }
 

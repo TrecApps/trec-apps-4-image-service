@@ -8,6 +8,7 @@ import com.trecapps.images.repos.ProfileRepo;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -21,10 +22,15 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
 public class ImageWriteService {
+
+    @Value("${trecapps.image.soft-delete-days:30}")
+    int softDeleteDays;
 
     @Autowired
     IImageStorageService imageStorageService;
@@ -157,7 +163,16 @@ public class ImageWriteService {
                             }
                             break;
                         case "album":
-                            record.setAlbum(new HashSet<>(List.of(patch.getValue().trim())));
+                        {
+                            String value = patch.getValue();
+                            if(value == null)
+                                record.setAlbum(new HashSet<>());
+                            else {
+                                value = value.trim();
+                                record.setAlbum(new HashSet<>(List.of(value)));
+                            }
+                        }
+
                             break;
                         case "owner":
                             throw new ObjectResponseException("Field 'owner' not supported at this time! Use 'crop' or 'album'!", HttpStatus.NOT_IMPLEMENTED);
@@ -333,4 +348,71 @@ public class ImageWriteService {
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> Mono.just(ex.toResponseObj()));
     }
 
+
+    public Mono<ResponseObj> startDelete(
+            @NotNull TcUser user,
+            @Nullable TcBrands brands,
+            @NotNull String imageId){
+        String profile = HelperMethods.getRequesterProfile(user, brands);
+        return imageRepo.findById(imageId)
+                .doOnNext((ImageRecord imageRecord) -> {
+                    if(imageRecord == null)
+                        throw new ObjectResponseException("Image not found!", HttpStatus.NOT_FOUND);
+
+                    if(!profile.equals(imageRecord.getOwner()))
+                        throw new ObjectResponseException("Image does not belong to you!", HttpStatus.FORBIDDEN);
+
+                    OffsetDateTime deleteOn = imageRecord.getDeleteOn();
+                    OffsetDateTime now = OffsetDateTime.now();
+                    if(deleteOn != null){
+                        long daysToDeletion = Math.abs(ChronoUnit.DAYS.between(deleteOn, now));
+                        if(daysToDeletion == 0)
+                            throw new ObjectResponseException("Deletion already submitted! Your image will be deleted later today!", HttpStatus.ALREADY_REPORTED);
+                        if(daysToDeletion == 1)
+                            throw new ObjectResponseException("Deletion already submitted! Image will be deleted in 1 day!", HttpStatus.ALREADY_REPORTED);
+                        throw new ObjectResponseException(String.format("Deletion already submitted! Image will be deleted in %d days!", daysToDeletion), HttpStatus.ALREADY_REPORTED);
+
+                    }
+
+                    imageRecord.setDeleteOn(now.plus(softDeleteDays, ChronoUnit.DAYS));
+                })
+                .flatMap((ImageRecord imageRecord) -> {
+                    return this.imageRepo.save(imageRecord)
+                            .thenReturn(
+                                    ResponseObj.getInstance(HttpStatus.OK,
+                                            String.format("Deletion Request submitted. You image will be deleted in %d days!", this.softDeleteDays)));
+                })
+                .onErrorResume((Throwable thrown) -> {
+                    return Mono.just(ResponseObj.getInstance(HttpStatus.INTERNAL_SERVER_ERROR, "Error Submitting Delete Request!"));
+                });
+    }
+
+    public Mono<ResponseObj> cancelDelete(
+            @NotNull TcUser user,
+            @Nullable TcBrands brands,
+            @NotNull String imageId
+    ) {
+        String profile = HelperMethods.getRequesterProfile(user, brands);
+        return imageRepo.findById(imageId)
+                .doOnNext((ImageRecord imageRecord) -> {
+                    if (imageRecord == null)
+                        throw new ObjectResponseException("Image not found!", HttpStatus.NOT_FOUND);
+
+                    if (!profile.equals(imageRecord.getOwner()))
+                        throw new ObjectResponseException("Image does not belong to you!", HttpStatus.FORBIDDEN);
+
+                    OffsetDateTime deleteOn = imageRecord.getDeleteOn();
+                    if (deleteOn == null)
+                        throw new ObjectResponseException("Image not marked for Deletion!", HttpStatus.PRECONDITION_FAILED);
+                    imageRecord.setDeleteOn(null);
+                }).flatMap((ImageRecord imageRecord) -> {
+                    return this.imageRepo.save(imageRecord)
+                            .thenReturn(
+                                    ResponseObj.getInstance(HttpStatus.OK,
+                                            String.format("Deletion Request submitted. You image will be deleted in %d days!", this.softDeleteDays)));
+                })
+                .onErrorResume((Throwable thrown) -> {
+                    return Mono.just(ResponseObj.getInstance(HttpStatus.INTERNAL_SERVER_ERROR, "Error Submitting Delete Request!"));
+                });
+    }
 }
