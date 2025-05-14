@@ -130,6 +130,46 @@ public class ImageWriteService {
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> Mono.just(ex.toResponseObj()));
     }
 
+    Mono<ResponseObj> updateVisibility(ImageRecord record, ImageVisibility visibility){
+        switch(visibility){
+            case PUBLIC:
+            {
+                if(ImageState.PUBLIC.equals(record.getState()))
+                    return Mono.just(ResponseObj.getInstance(HttpStatus.ALREADY_REPORTED, "Already public!"));
+                if(!record.isPublicEligible())
+                    throw new ObjectResponseException("Image not marked for Public availability!", HttpStatus.PRECONDITION_FAILED);
+
+                // Make the image public
+                record.setState(ImageState.PUBLIC);
+                return this.imageStorageService.transferImage(record)
+                        .flatMap((ResponseObj obj) -> {
+                            return this.imageRepo.save(record).thenReturn(obj);
+                        });
+            }
+            case PUBLIC_AUTH:
+                case PROTECTED:
+            {
+                Mono<ResponseObj> ret = ImageState.PUBLIC.equals(record.getState()) ?
+                    Mono.just(record).flatMap((ImageRecord r) -> {
+                        r.setState(ImageState.NON_ADULT);
+                        r.setAllowPublic(visibility.equals(ImageVisibility.PUBLIC_AUTH));
+                        return this.imageStorageService.transferImage(record);
+
+                    }).flatMap((ResponseObj obj) -> {
+                        return this.imageRepo.save(record).thenReturn(obj);
+                    })
+                :  Mono.just(record).flatMap((ImageRecord r) -> {
+                    r.setAllowPublic(visibility.equals(ImageVisibility.PUBLIC_AUTH));
+                    return this.imageRepo.save(r).thenReturn(ResponseObj.getInstance(HttpStatus.OK, "Success!"));
+
+                });
+                return ret;
+            }
+
+        }
+        throw new ObjectResponseException("Visibility not detected!", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     public Mono<ResponseObj> patchData(
             @NotNull TcUser user,
             @Nullable TcBrands brands,
@@ -172,8 +212,18 @@ public class ImageWriteService {
                                 record.setAlbum(new HashSet<>(List.of(value)));
                             }
                         }
+                        break;
+                        case "visibility": {
 
-                            break;
+                            ImageVisibility visibility = null;
+                            try {
+                                visibility = ImageVisibility.valueOf(patch.getValue());
+                            } catch (IllegalArgumentException ignore) {
+                                throw new ObjectResponseException("Visibility updates need to be specified with 'PUBLIC', 'PUBLIC_AUTH', or 'PROTECTED'", HttpStatus.BAD_REQUEST);
+                            }
+
+                            return updateVisibility(record, visibility);
+                        }
                         case "owner":
                             throw new ObjectResponseException("Field 'owner' not supported at this time! Use 'crop' or 'album'!", HttpStatus.NOT_IMPLEMENTED);
                         default:

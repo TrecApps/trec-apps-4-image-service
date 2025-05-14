@@ -82,7 +82,7 @@ public class ImageRecord {
 
     Analysis analysis;  // Extended properties that will be added via AI
 
-    boolean allowPublic = false; // ignored unless image is marked as adult. then allows bypass access
+    boolean allowPublic = false;
 
     OffsetDateTime deleteOn;
 
