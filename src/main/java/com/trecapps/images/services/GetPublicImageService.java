@@ -35,7 +35,7 @@ public class GetPublicImageService {
                     if(record == null)
                         throw new ObjectResponseException("", HttpStatus.NOT_FOUND);
 
-                    if(ImageState.PUBLIC.equals(record.getState()))
+                    if(!ImageState.PUBLIC.equals(record.getState()))
                         throw new ObjectResponseException("", HttpStatus.PRECONDITION_FAILED);
 
                     String useCrop = crop;
