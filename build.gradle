@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '3.5.0'
+    id 'org.springframework.boot' version '3.5.3'
     id 'jacoco'
 }
 
@@ -17,7 +17,7 @@ group = 'com.trecapps'
 version = '1.0-SNAPSHOT'
 
 ext {
-    springbootVersion = '3.5.0'
+    springbootVersion = '3.5.3'
 }
 
 jar{
@@ -46,7 +46,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 
     //Enable Trec-Auth
-    implementation 'com.trecapps.auth:TrecAuth:0.9.23-alpha'
+    implementation 'com.trecapps.auth:TrecAuth:0.9.24-alpha'
 
     // Spring Boot features
     implementation "org.springframework.boot:spring-boot-starter-quartz:$springbootVersion"
