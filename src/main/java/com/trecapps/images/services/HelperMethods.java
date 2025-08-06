@@ -35,8 +35,10 @@ public class HelperMethods {
 
     public static Mono<ResponseObj> setProfileImage(ProfileRepo profileRepo, ImageRecord imageRecord, String profile, String app){
         return profileRepo.findById(profile)
+                .switchIfEmpty(Mono.just(new ImageProfile()))
                 .flatMap((ImageProfile imageProfile)-> {
-                    if(imageProfile == null){
+
+                    if(imageProfile.getProfileId() == null){
                         imageProfile = new ImageProfile();
                         imageProfile.setProfileId(profile);
                         imageProfile.setEntries(new ArrayList<>());

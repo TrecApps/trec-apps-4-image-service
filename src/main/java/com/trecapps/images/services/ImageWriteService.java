@@ -302,7 +302,7 @@ public class ImageWriteService {
                         throw new ObjectResponseException("Image not found!", HttpStatus.NOT_FOUND);
 
 
-                    if(!profile.equals(imageRecord.getOwner()) && !profile.equals("User-" + user.getId()))
+                    if(!profile.equals(imageRecord.getOwner()) && !("User-" + user.getId()).equals(imageRecord.getOwner()))
                         throw new ObjectResponseException("Image does not belong to you!", HttpStatus.FORBIDDEN);
 
                     if(ImageState.ADULT.equals(imageRecord.getState()))
@@ -322,7 +322,11 @@ public class ImageWriteService {
 
                     if(imageRecord.getState().equals(ImageState.NON_ADULT)) {
                         imageRecord.setState(ImageState.PUBLIC);
-                        return this.imageStorageService.transferImage(imageRecord).thenReturn(imageRecord);
+                        return this.imageStorageService.transferImage(imageRecord)
+                                .flatMap((ResponseObj o) -> {
+                                    return this.imageRepo.save(imageRecord).thenReturn(o);
+                                })
+                                .thenReturn(imageRecord);
 
                     }
                     return Mono.just(imageRecord);
