@@ -27,7 +27,9 @@ public class ImageRetrievalController {
     }
 
     @PostMapping("/profile/{profile}")
-    Mono<ResponseEntity<ResponseObj>> addProfile(@PathVariable String profile, @RequestBody List<ImageProfileEntry> entries){
+    Mono<ResponseEntity<ResponseObj>> addProfile(
+            @PathVariable String profile,
+            @RequestBody List<ImageProfileEntry> entries){
         return imageService.setProfile(profile, entries);
     }
 

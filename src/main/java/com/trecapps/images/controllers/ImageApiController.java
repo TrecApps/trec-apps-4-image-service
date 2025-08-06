@@ -2,21 +2,23 @@ package com.trecapps.images.controllers;
 
 import com.azure.core.annotation.Get;
 import com.nimbusds.oauth2.sdk.Response;
+import com.trecapps.auth.common.models.TcBrands;
 import com.trecapps.auth.common.models.TrecAuthentication;
-import com.trecapps.images.models.ImagePatch;
-import com.trecapps.images.models.ImageRecord;
-import com.trecapps.images.models.ReaderAction;
-import com.trecapps.images.models.ResponseObj;
+import com.trecapps.auth.webflux.services.IUserStorageServiceAsync;
+import com.trecapps.images.models.*;
 import com.trecapps.images.services.ImageWriteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.io.ObjectStreamException;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/Image-API")
@@ -24,6 +26,9 @@ public class ImageApiController {
 
     @Autowired
     ImageWriteService imageWriteService;
+
+    @Autowired
+    IUserStorageServiceAsync userStorageService;
 
     @PostMapping
     Mono<ResponseEntity<ResponseObj>> postImage(
@@ -88,15 +93,42 @@ public class ImageApiController {
     Mono<ResponseEntity<ResponseObj>> setProfile(
             Authentication authentication,
             @PathVariable String id,
-            @RequestParam(defaultValue = "main") String app
+            @RequestParam(defaultValue = "main") String app,
+            @RequestParam(defaultValue = "") String brand
     ) {
         TrecAuthentication trecAuthentication = (TrecAuthentication) authentication;
-        return imageWriteService.setProfilePic(
+
+        if(brand.isEmpty())
+            return imageWriteService.setProfilePic(
                 trecAuthentication.getUser(),
                 trecAuthentication.getBrand(),
                 id,
                 app
         ).map(ResponseObj::toEntity);
+
+        return userStorageService.getBrandById(brand)
+                .map((Optional<TcBrands> oBrand) -> {
+                    if(oBrand.isEmpty())
+                        throw new ObjectResponseException("Brand Id Not Found",HttpStatus.NOT_FOUND );
+
+                    TcBrands brandObj = oBrand.get();
+
+                    if(!brandObj.getOwners().contains(trecAuthentication.getUser().getId()))
+                        throw new ObjectResponseException("Brand does not belong to you", HttpStatus.FORBIDDEN);
+                    trecAuthentication.setBrand(brandObj);
+                    return trecAuthentication;
+                })
+                .flatMap((TrecAuthentication tauth) -> {
+                    return imageWriteService.setProfilePic(
+                            tauth.getUser(),
+                            tauth.getBrand(),
+                            id,
+                            app
+                    );
+                })
+                .onErrorResume((ObjectResponseException.class), (ObjectResponseException e) -> Mono.just(e.toResponseObj()))
+                .map(ResponseObj::toEntity);
+
     }
 
     @GetMapping
