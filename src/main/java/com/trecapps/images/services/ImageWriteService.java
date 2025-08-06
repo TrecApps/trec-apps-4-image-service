@@ -302,7 +302,7 @@ public class ImageWriteService {
                         throw new ObjectResponseException("Image not found!", HttpStatus.NOT_FOUND);
 
 
-                    if(!profile.equals(imageRecord.getOwner()))
+                    if(!profile.equals(imageRecord.getOwner()) && !profile.equals("User-" + user.getId()))
                         throw new ObjectResponseException("Image does not belong to you!", HttpStatus.FORBIDDEN);
 
                     if(ImageState.ADULT.equals(imageRecord.getState()))
