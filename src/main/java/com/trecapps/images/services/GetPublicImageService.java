@@ -87,6 +87,17 @@ public class GetPublicImageService {
                         if(tApp.equals(appEntry.getApp()))
                             return appEntry.getImageId();
                     }
+
+                    // If the target app wasn't main yet it was not found, fallback to main
+                    if(!"main".equals(tApp))
+                    {
+                        tApp = "main";
+                        for(ImageProfileEntry appEntry: iProfile.getEntries()){
+                            if(tApp.equals(appEntry.getApp()))
+                                return appEntry.getImageId();
+                        }
+                    }
+                                        
                     throw new ObjectResponseException("Profile App Entry not found", HttpStatus.NOT_FOUND);
                 })
                 .flatMap((String id) -> getImage(id, null))
