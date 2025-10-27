@@ -74,7 +74,7 @@ public class GetPublicImageService {
                 .map(ResponseObj::toEntity);
     }
 
-    public Mono<ResponseEntity<byte[]>> getImageByProfileId(String profileId, final String app) {
+    public Mono<ResponseEntity<byte[]>> getImageByProfileId(String profileId, final String app, boolean allowFallback) {
         return profileRepo.findById(profileId)
                 .map((ImageProfile iProfile) -> {
                     if(iProfile == null)
@@ -89,7 +89,7 @@ public class GetPublicImageService {
                     }
 
                     // If the target app wasn't main yet it was not found, fallback to main
-                    if(!"main".equals(tApp))
+                    if(allowFallback && !"main".equals(tApp))
                     {
                         tApp = "main";
                         for(ImageProfileEntry appEntry: iProfile.getEntries()){
@@ -103,7 +103,8 @@ public class GetPublicImageService {
                 .flatMap((String id) -> getImage(id, null))
                 .onErrorResume(ObjectResponseException.class, (ObjectResponseException ex) -> {
                     return Mono.just(new ResponseEntity<>(ex.getStatus()));
-                });
+                })
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatusCode.valueOf(404)));
 
     }
 

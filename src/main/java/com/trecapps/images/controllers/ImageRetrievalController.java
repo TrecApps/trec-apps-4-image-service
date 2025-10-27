@@ -35,9 +35,11 @@ public class ImageRetrievalController {
 
     @GetMapping("/profile/{profile}")
     Mono<ResponseEntity<byte[]>> getProfile(
-            @PathVariable String profile, @RequestParam(defaultValue = "main") String app
+            @PathVariable String profile,
+            @RequestParam(defaultValue = "main") String app,
+            @RequestParam(defaultValue = "true") boolean fallback
     ) {
-        return imageService.getImageByProfileId(profile, app);
+        return imageService.getImageByProfileId(profile, app, fallback);
     }
 
 }
