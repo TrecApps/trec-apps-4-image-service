@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'org.springframework.boot' version '3.5.6'
+    id 'org.springframework.boot' version '3.5.8'
     id 'jacoco'
 }
 
@@ -17,7 +17,7 @@ group = 'com.trecapps'
 version = '1.0-SNAPSHOT'
 
 ext {
-    springbootVersion = '3.5.6'
+    springbootVersion = '3.5.8'
 }
 
 jar{
@@ -71,11 +71,11 @@ dependencies {
     //implementation 'org.springframework.boot:spring-boot-starter-data-jpa:+'
     // Use JWT for token generation and verification
     implementation 'com.auth0:java-jwt:+'
-    implementation 'org.bouncycastle:bcpkix-jdk18on:1.78.1'
+    implementation 'org.bouncycastle:bcpkix-jdk18on:1.79'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:+'
     implementation "com.azure.spring:spring-cloud-azure-starter-keyvault:5.23.0"
 
-    implementation 'com.mysql:mysql-connector-j:9.2.0'
+    implementation 'com.mysql:mysql-connector-j:9.3.0'
 
     //implementation 'mysql:mysql-connector-java:+' // mySQL
     implementation 'com.azure:azure-storage-blob:+'
