@@ -1,7 +1,5 @@
 package com.trecapps.images.controllers;
 
-import com.azure.core.annotation.Get;
-import com.nimbusds.oauth2.sdk.Response;
 import com.trecapps.auth.common.models.TcBrands;
 import com.trecapps.auth.common.models.TrecAuthentication;
 import com.trecapps.auth.webflux.services.IUserStorageServiceAsync;

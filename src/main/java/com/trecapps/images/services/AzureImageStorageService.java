@@ -16,7 +16,6 @@ import com.trecapps.images.models.ObjectResponseException;
 import com.trecapps.images.models.ResponseObj;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -38,19 +37,19 @@ public class AzureImageStorageService implements IImageStorageService {
                    String endpoint,
                    String publicContainerName,
                    String hiddenContainerName,
-                   Jackson2ObjectMapperBuilder objectMapperBuilder) {
+                   ObjectMapper objectMapperBuilder) {
         AzureNamedKeyCredential credential = new AzureNamedKeyCredential(name, key);
         this.client = (new BlobServiceClientBuilder()).credential(credential).endpoint(endpoint).buildAsyncClient();
         this.publicContainerClient = client.getBlobContainerAsyncClient(publicContainerName);
         this.hiddenContainerClient = client.getBlobContainerAsyncClient(hiddenContainerName);
-        this.objectMapper = objectMapperBuilder.createXmlMapper(false).build();
+        this.objectMapper = objectMapperBuilder;
         this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         prepContainers();
     }
 
     AzureImageStorageService(
-            Jackson2ObjectMapperBuilder objectMapperBuilder,
+            ObjectMapper objectMapperBuilder,
             String publicContainerName,
             String hiddenContainerName,
             String endpoint
@@ -63,7 +62,7 @@ public class AzureImageStorageService implements IImageStorageService {
                 .buildAsyncClient();
         this.publicContainerClient = client.getBlobContainerAsyncClient(publicContainerName);
         this.hiddenContainerClient = client.getBlobContainerAsyncClient(hiddenContainerName);
-        this.objectMapper = objectMapperBuilder.createXmlMapper(false).build();
+        this.objectMapper = objectMapperBuilder;
         this.objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         this.objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         prepContainers();

@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import reactor.core.publisher.Mono;
 
 @Configuration
@@ -113,10 +111,9 @@ public class ImageProcessConfig {
     @ConditionalOnProperty(prefix = "trecapps.imconsumer", name = "strategy", havingValue = "azure-service-bus-entra")
     IMessageConsumer getServiceBusEntra(
             @Value("${trecapps.imconsumer.queue}") String queue,
-            @Value("${trecapps.imconsumer.namespace}") String namespace,
-            Jackson2ObjectMapperBuilder objectMapperBuilder
+            @Value("${trecapps.imconsumer.namespace}") String namespace
     ) {
-        return generateConsumer(queue, namespace, objectMapperBuilder, false);
+        return generateConsumer(queue, namespace, false);
     }
 
 
@@ -124,14 +121,13 @@ public class ImageProcessConfig {
     @ConditionalOnProperty(prefix = "trecapps.imconsumer", name = "strategy", havingValue = "azure-service-bus-connection-string")
     IMessageConsumer getServiceBusConnString(
             @Value("${trecapps.imconsumer.queue}") String queue,
-            @Value("${trecapps.imconsumer.connection}") String connection,
-            Jackson2ObjectMapperBuilder objectMapperBuilder
+            @Value("${trecapps.imconsumer.connection}") String connection
     ) {
-        return generateConsumer(queue, connection, objectMapperBuilder, true);
+        return generateConsumer(queue, connection, true);
     }
 
-    IMessageConsumer generateConsumer(String queue, String nameConn, Jackson2ObjectMapperBuilder objectMapperBuilder, boolean conn){
-        IMessageConsumer consumer = new AzureServiceBusImageMessageConsumer(queue, nameConn, objectMapperBuilder, conn);
+    IMessageConsumer generateConsumer(String queue, String nameConn, boolean conn){
+        IMessageConsumer consumer = new AzureServiceBusImageMessageConsumer(queue, nameConn, conn);
         consumer.initialize(handler);
         return consumer;
     }

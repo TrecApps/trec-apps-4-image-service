@@ -3,8 +3,8 @@ package com.trecapps.images.processor;
 import com.azure.identity.DefaultAzureCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.messaging.servicebus.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -16,7 +16,6 @@ public class AzureServiceBusImageMessageConsumer implements IMessageConsumer {
     AzureServiceBusImageMessageConsumer(
             String queue,
             String connector,
-            Jackson2ObjectMapperBuilder objectMapperBuilder1,
             boolean useConnectionString
     ){
         if(useConnectionString){

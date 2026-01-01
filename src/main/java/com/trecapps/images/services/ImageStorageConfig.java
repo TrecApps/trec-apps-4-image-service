@@ -1,10 +1,10 @@
 package com.trecapps.images.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @Configuration
 public class ImageStorageConfig {
@@ -17,7 +17,7 @@ public class ImageStorageConfig {
             @Value("${picture.storage.blob-endpoint}") String endpoint,
             @Value("${picture.storage.public-container}") String publicContainerName,
             @Value("${picture.storage.hidden-container}") String hiddenContainerName,
-            Jackson2ObjectMapperBuilder objectMapperBuilder
+            ObjectMapper objectMapperBuilder
     ) {
         return new AzureImageStorageService(name, key, endpoint, publicContainerName, hiddenContainerName, objectMapperBuilder);
     }
@@ -29,7 +29,7 @@ public class ImageStorageConfig {
             @Value("${picture.storage.blob-endpoint}") String endpoint,
             @Value("${picture.storage.public-container}") String publicContainerName,
             @Value("${picture.storage.hidden-container}") String hiddenContainerName,
-            Jackson2ObjectMapperBuilder objectMapperBuilder
+            ObjectMapper objectMapperBuilder
     ) {
         return new AzureImageStorageService(objectMapperBuilder, publicContainerName, hiddenContainerName, endpoint);
     }
